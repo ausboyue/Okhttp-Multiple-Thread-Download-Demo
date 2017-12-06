@@ -1,8 +1,6 @@
 # Okhttp-Multiple-Thread-Download-Demo
 Android Okhttp多线程断点续传下载Demo
-<p>
-	<span style="white-space:pre"></span><span style="white-space:pre"></span>&nbsp; &nbsp; &nbsp; &nbsp; 时下，得力于谷歌官方强烈推荐，加上自身优秀特性，OkHttp成了当前最火的HTTP框架之一。现在公司的项目我也全都换成了基于OkHttp+Gson底层网络访问和解析平台。
-</p>
+
 <p>
 	<span style="white-space:pre"></span>&nbsp; &nbsp; &nbsp; &nbsp; 最近项目需要使用到断点下载功能，笔者比较喜欢折腾，想方设法抛弃SharedPreferences，尤其是sqlite作记录辅助，改用临时记录文件的形式记录下载进度，本文以断点下载为例。先看看demo运行效果图：
 </p>
