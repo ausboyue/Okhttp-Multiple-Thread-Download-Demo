@@ -631,4 +631,4 @@ public class DownloadManager {
    OK，时间关系，文章到此结束，有问题或需要Demo源码的朋友下方留言。半夜了。。。浓浓的倦意。。。
 
  &nbsp;&nbsp;&nbsp;&nbsp;2017年6月2日更新：鉴于CSDN库无缘无故把我以前文章上传的Demo源码以及库弄没了，决定还是传github靠谱，下面贴上Demo源码地址：https://github.com/ausboyue/Okhttp-Multiple-Thread-Download-Demo  
-临时赶时间写的，难免有些bug，有问题请及时“issues”。。。
+临时赶时间写的，难免有些bug，有问题请及时“issue”。。。
