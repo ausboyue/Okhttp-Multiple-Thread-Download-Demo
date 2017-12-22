@@ -1,16 +1,22 @@
-#Okhttp-Multiple-Thread-Download-Demo
+# Okhttp-Multiple-Thread-Download-Demo
 Android Okhttp多线程断点续传下载Demo
->最近项目需要使用到断点下载功能，笔者比较喜欢折腾，想方设法抛弃SharedPreferences，尤其是sqlite作记录辅助，改用临时记录文件的形式记录下载进度，本文以断点下载为例。
+> 最近项目需要使用到断点下载功能，笔者比较喜欢折腾，想方设法抛弃SharedPreferences，尤其是sqlite作记录辅助，改用临时记录文件的形式记录下载进度，本文以断点下载为例。
+
 
 先看看demo运行效果图：
+
 
 ![效果图](http://img.blog.csdn.net/20170504002218302?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvYXVzYm95dWU=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center)
 
 >   断点续传：记录上次上传（下载）节点位置，下次接着该位置继续上传（下载）。多线程断点续传下载则是根据目标下载文件长度，尽可能地等分给多个线程同时下载文件块，当各个线程全部完成下载后，将文件块合并成一个文件，即目标文件。多线程断点续传不仅为用户避免了断网等突发事故需要重新下载浪费流量的尴尬局面，也大大提高了下载速率，当然，不是线程越多越好，网络带宽才是硬道理！以下为原理图：
+
+
 ![原理图](https://camo.githubusercontent.com/ea7d803e83413c1ddd651c82b8d98fc6689ae65a/687474703a2f2f696d672e626c6f672e6373646e2e6e65742f32303137303530343232333731333530353f77617465726d61726b2f322f746578742f6148523063446f764c324a736232637559334e6b626935755a5851765958567a596d39356457553d2f666f6e742f3561364c354c32542f666f6e7473697a652f3430302f66696c6c2f49304a42516b46434d413d3d2f646973736f6c76652f37302f677261766974792f43656e746572)
 
  java，android中可以使用RandomAccessFile类生成一个同目标文件大小的占位文件，以便于各个线程可以同时操作该文件，并写入各线程实时下载的数据。
  > 下面贴出OkHttp实现的单个多线程下载任务类的DownloadTask.java文件：
+ 
+ 
 ```java
 package cn.icheny.download;
 
@@ -315,7 +321,7 @@ public class DownloadTask extends Handler {
 ```
   先网络请求获取文件的长度mFileLength，根据长度借助RandomAccessFile类在本地生成相同长度的占位文件mTmpFile，再根据线程数量THREAD_COUNT拆分下载任务，最后for循环出THREAD_COUNT数量的异步请求下载拆分内容（字节）并从mTmpFile的对应位置写入mTmpFile，每个线程（任务）每写入一定的数据后将任务的下载进度写入通过RandomAccessFile生成的对应任务的记录缓存文件中，以便于下次下载读取该线程已下载的进度。注释比较多，好像也没啥好解释的，有问题的朋友下方留言。
 
->    在贴上由OkHttp简单封装的网络请求工具类HttpUtil的.java文件：
+>  在贴上由OkHttp简单封装的网络请求工具类HttpUtil的.java文件：
 ``` java
 package cn.icheny.download;
 
@@ -422,8 +428,11 @@ public class HttpUtil {
     }
 }
 ```
+
  header("RANGE", "bytes=" + startIndex + "-" + endIndex)，在OkHttp请求头中添加RANGE（范围）参数，告诉服务器需要下载文件内容的始末位置。鉴于OkHttp的火热程度，好像人人都会使用OkHttp，我就不赘言了。
 >为了更清晰的教程思路，这里也贴出FilePoint.java：
+
+
 ``` java
 package cn.icheny.download;
 
@@ -478,6 +487,7 @@ public class FilePoint {
 
 }
 ```
+
 > 下面是下载管理器DownloadManager 代码，统一管理所有文件的下载任务：
 ``` java
 package cn.icheny.download;
@@ -616,6 +626,7 @@ public class DownloadManager {
     }
 }
 ```
+
 &nbsp;&nbsp;&nbsp;&nbsp;下载管理器通过一个Map将下载链接（url，教程图方便使用url的方式。建议使用其他唯一标识，毕竟一般url长度都很长，会影响一定性能。另外，考虑一个项目中可能需要下载同一个文件到不同的目录，url做索引显得生硬）与对应的下载任务( DownloadTask )绑定在一起，以便于根据url判断或获取对应的下载任务，进行下载,取消和暂停等操作。
    OK，时间关系，文章到此结束，有问题或需要Demo源码的朋友下方留言。半夜了。。。浓浓的倦意。。。
 
