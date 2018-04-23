@@ -1,9 +1,7 @@
 # Okhttp-Multiple-Thread-Download-Demo
 Android Okhttp多线程断点续传下载Demo
-> 最近项目需要使用到断点下载功能，笔者比较喜欢折腾，想方设法抛弃SharedPreferences，尤其是sqlite作记录辅助，改用临时记录文件的形式记录下载进度，本文以断点下载为例。
+> 最近项目需要使用到断点下载功能，笔者比较喜欢折腾，想方设法抛弃SharedPreferences，尤其是sqlite作记录辅助，改用临时记录文件的形式记录下载进度，本文以断点下载为例。先看看demo运行效果图：
 
-
-先看看demo运行效果图：
 <img src="http://media.icheny.cn/image/20170504002218302.gif" width="200px" alt="效果图" />
 
 
