@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     ProgressBar pb_progress1, pb_progress2;
 
     DownloadManager mDownloadManager;
-    String wechatUrl = "http://dldir1.qq.com/weixin/android/weixin657android1040.apk";
+    String wechatUrl = "http://dldir1.qq.com/weixin/android/weixin703android1400.apk";
     String qqUrl = "https://qd.myapp.com/myapp/qqteam/AndroidQQ/mobileqq_android.apk";
 
     @Override
@@ -95,19 +95,19 @@ public class MainActivity extends AppCompatActivity {
      * 初始化View控件
      */
     private void initViews() {
-        tv_file_name1 = (TextView) findViewById(R.id.tv_file_name1);
-        tv_progress1 = (TextView) findViewById(R.id.tv_progress1);
-        pb_progress1 = (ProgressBar) findViewById(R.id.pb_progress1);
-        btn_download1 = (Button) findViewById(R.id.btn_download1);
+        tv_file_name1 = findViewById(R.id.tv_file_name1);
+        tv_progress1 = findViewById(R.id.tv_progress1);
+        pb_progress1 = findViewById(R.id.pb_progress1);
+        btn_download1 = findViewById(R.id.btn_download1);
         tv_file_name1.setText("微信");
 
-        tv_file_name2 = (TextView) findViewById(R.id.tv_file_name2);
-        tv_progress2 = (TextView) findViewById(R.id.tv_progress2);
-        pb_progress2 = (ProgressBar) findViewById(R.id.pb_progress2);
-        btn_download2 = (Button) findViewById(R.id.btn_download2);
+        tv_file_name2 = findViewById(R.id.tv_file_name2);
+        tv_progress2 = findViewById(R.id.tv_progress2);
+        pb_progress2 = findViewById(R.id.pb_progress2);
+        btn_download2 = findViewById(R.id.btn_download2);
         tv_file_name2.setText("qq");
 
-        btn_download_all = (Button) findViewById(R.id.btn_download_all);
+        btn_download_all = findViewById(R.id.btn_download_all);
 
     }
 
