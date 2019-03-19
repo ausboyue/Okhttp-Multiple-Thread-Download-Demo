@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.Call;
 import okhttp3.Response;
@@ -23,26 +24,26 @@ public class DownloadTask extends Handler {
     private FilePoint mPoint;
     private long mFileLength;
 
-
-    private boolean isDownloading = false;
-    private int childCanleCount;//子线程取消数量
-    private int childPauseCount;//子线程暂停数量
-    private int childFinshCount;
+    private volatile boolean isDownloading = false;
+    private AtomicInteger childCanleCount = new AtomicInteger(0);//子线程取消数量
+    private AtomicInteger childPauseCount = new AtomicInteger(0);//子线程暂停数量
+    private AtomicInteger childFinshCount = new AtomicInteger(0);//子线程完成数量
     private HttpUtil mHttpUtil;
     private long[] mProgress;
     private File[] mCacheFiles;
     private File mTmpFile;//临时占位文件
-    private boolean pause;//是否暂停
-    private boolean cancel;//是否取消下载
-
-    private final int MSG_PROGRESS = 1;//进度
-    private final int MSG_FINISH = 2;//完成下载
-    private final int MSG_PAUSE = 3;//暂停
-    private final int MSG_CANCEL = 4;//暂停
+    private volatile boolean pause;//是否暂停
+    private volatile boolean cancel;//是否取消下载
+    private static final int MSG_PROGRESS = 1;//进度
+    private static final int MSG_FINISH = 2;//完成下载
+    private static final int MSG_PAUSE = 3;//暂停
+    private static final int MSG_CANCEL = 4;//暂停
     private DownloadListner mListner;//下载回调监听
+
 
     /**
      * 任务管理器初始化数据
+     *
      * @param point
      * @param l
      */
@@ -56,11 +57,11 @@ public class DownloadTask extends Handler {
 
     /**
      * 任务回调消息
+     *
      * @param msg
      */
     @Override
     public void handleMessage(Message msg) {
-        super.handleMessage(msg);
         if (null == mListner) {
             return;
         }
@@ -73,21 +74,18 @@ public class DownloadTask extends Handler {
                 mListner.onProgress(progress * 1.0f / mFileLength);
                 break;
             case MSG_PAUSE://暂停
-                childPauseCount++;
-                if (childPauseCount % THREAD_COUNT != 0) return;
+                if (confirmStatus(childPauseCount)) return;
                 resetStutus();
                 mListner.onPause();
                 break;
             case MSG_FINISH://完成
-                childFinshCount++;
-                if (childFinshCount % THREAD_COUNT != 0) return;
+                if (confirmStatus(childFinshCount)) return;
                 mTmpFile.renameTo(new File(mPoint.getFilePath(), mPoint.getFileName()));//下载完毕后，重命名目标文件名
                 resetStutus();
                 mListner.onFinished();
                 break;
             case MSG_CANCEL://取消
-                childCanleCount++;
-                if (childCanleCount % THREAD_COUNT != 0) return;
+                if (confirmStatus(childCanleCount)) return;
                 resetStutus();
                 mProgress = new long[THREAD_COUNT];
                 mListner.onCancel();
@@ -105,6 +103,7 @@ public class DownloadTask extends Handler {
             mHttpUtil.getContentLength(mPoint.getUrl(), new okhttp3.Callback() {
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
+                    Log.e(TAG, "start: " + response.code() + "\t isDownloading:" + isDownloading + "\t" + mPoint.getUrl());
                     if (response.code() != 200) {
                         close(response.body());
                         resetStutus();
@@ -134,6 +133,8 @@ public class DownloadTask extends Handler {
 
                 @Override
                 public void onFailure(Call call, IOException e) {
+                    Log.e(TAG, "start:Exception " + e.getMessage() + "\n" + mPoint.getUrl());
+                    resetStutus();
                 }
             });
         } catch (IOException e) {
@@ -142,7 +143,7 @@ public class DownloadTask extends Handler {
         }
     }
 
-    public void download(final long startIndex, final long endIndex, final int threadId) throws IOException {
+    private void download(final long startIndex, final long endIndex, final int threadId) throws IOException {
         long newStartIndex = startIndex;
         // 分段请求网络连接,分段将文件保存到本地.
         // 加载下载位置缓存文件
@@ -161,6 +162,7 @@ public class DownloadTask extends Handler {
         mHttpUtil.downloadFileByRange(mPoint.getUrl(), finalStartIndex, endIndex, new okhttp3.Callback() {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
+                Log.e(TAG, "download: " + response.code() + "\t isDownloading:" + isDownloading + "\t" + mPoint.getUrl());
                 if (response.code() != 206) {// 206：请求部分资源成功码
                     resetStutus();
                     return;
@@ -168,7 +170,7 @@ public class DownloadTask extends Handler {
                 InputStream is = response.body().byteStream();// 获取流
                 RandomAccessFile tmpAccessFile = new RandomAccessFile(mTmpFile, "rw");// 获取前面已创建的文件.
                 tmpAccessFile.seek(finalStartIndex);// 文件写入的开始位置.
-                  /*  将网络流中的文件写入本地*/
+                /*  将网络流中的文件写入本地*/
                 byte[] buffer = new byte[1024 << 2];
                 int length = -1;
                 int total = 0;// 记录本次下载文件的大小
@@ -275,6 +277,16 @@ public class DownloadTask extends Handler {
         pause = false;
         cancel = false;
         isDownloading = false;
+    }
+
+    /**
+     * 确认下载状态
+     *
+     * @param count
+     * @return
+     */
+    private boolean confirmStatus(AtomicInteger count) {
+        return count.incrementAndGet() % THREAD_COUNT != 0;
     }
 
     public boolean isDownloading() {

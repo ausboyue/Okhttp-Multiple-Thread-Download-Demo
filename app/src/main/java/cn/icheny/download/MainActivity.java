@@ -194,6 +194,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cancelAll(null);
+    }
+
     /**
      * 显示提示消息
      *
@@ -222,6 +228,4 @@ public class MainActivity extends AppCompatActivity {
     protected boolean shouldShowRationale(String permission) {
         return ActivityCompat.shouldShowRequestPermissionRationale(this, permission);
     }
-
-
 }
